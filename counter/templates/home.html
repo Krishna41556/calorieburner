@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+{% load static %} {%load mathfilters%} {%load humanize%}
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.0-beta1/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+      integrity="sha384-0evHe/X+R7YkIZDRvuzKMRqM+OrBnVFBL6DOitfPri4tjfHxaWutUpFmBp4vmVor"
+      crossorigin="anonymous"
+    />
+    <link href="{% static 'style.css' %}" rel="stylesheet" type="text/css" />
+    <title>Foodie Calorie Finder</title>
+  </head>
+
+  <body>
+      <div class="container">
+          <div class="row justify-content-center">
+              <div class="col-md-8 text-center">
+                  <div class="card mb-4 mt-4">
+                      <div class="card-body">
+                          <h4 class="card-title mb-3">BMI Calculator</h4>
+                          <form id="bmiForm" class="mb-3">
+                              <div class="row g-3">
+                                  <div class="col-md-6">
+                                      <select class="form-select" id="gender" required>
+                                          <option value="">Select Gender</option>
+                                          <option value="male">Male</option>
+                                          <option value="female">Female</option>
+                                      </select>
+                                  </div>
+                                  <div class="col-md-6">
+                                      <input type="number" class="form-control" id="weight" placeholder="Weight (kg)" required>
+                                  </div>
+                                  <div class="col-md-6">
+                                      <input type="number" class="form-control" id="height" placeholder="Height (cm)" required>
+                                  </div>
+                                  <div class="col-md-6">
+                                      <button type="submit" class="btn btn-primary w-100">Calculate BMI</button>
+                                  </div>
+                              </div>
+                          </form>
+                          <div id="bmiResult" class="alert alert-info d-none">
+                              <h5 class="mb-2">Your BMI Results:</h5>
+                              <p class="mb-1">BMI: <span id="bmiValue"></span></p>
+                              <p class="mb-1">Category: <span id="bmiCategory"></span></p>
+                              <p class="mb-0">Recommended Exercise: <span id="exerciseRecommendation"></span></p>
+                          </div>
+                      </div>
+                  </div>
+                  <img src="{% static 'images/logo.png' %}" class="img-responsive logo mb-5 mt-5" />
+                  <form method="POST">
+                      {%csrf_token%}
+                      <div class="input-group input-group-lg mb-5">
+                      <input type="text" name="query" class="form-control inputstyle" placeholder="search for calories in your food..." required>
+                      <button class="btn whoop" type="submit" id="button-addon2">Find calories</button>
+                      </div>
+                  </form>
+                  {% if api %}
+                  {% if api == "oops! There was an error" %}
+                  <div class ="alert alert-warning"> Oh no! something went wrong.Please try again in sometime. </div>
+                  {%else%}
+                  <h1>{{api.0.name | capfirst}} has a total of <strong> {{api.0.calories}} Calories</strong>
+                    {%if api.0.calories > 200%}
+                     <img src="{% static 'images/shocked.png' %}" class="img-responsive" />
+                     {%endif%}
+                  </h1>
+                        {%if api.0.sodium_mg > 1000%}
+                      <div class="alert alert-danger d-flex align-items-center mt-3" role="alert">
+                          <div>
+                              This food contains an high amount of sodium. High Sodium causes Sever dehydration and water retention.
+                          </div>
+                        </div>
+                        {%endif%}
+                    {%if api.0.sugar_g > 100%}
+                  <div class="alert alert-danger d-flex align-items-center mt-3" role="alert">
+                      <div>
+                          This food contains an high amount of sugar. Sugar causes insulin spikes and is a no.1 cause for Obesity.
+                      </div>
+                    </div>
+                    {%endif%}
+          </div>
+          <div class="row justify-content-center mt-5 mb-5">
+              <div class="col-md-10 caloriescont shadow rounded">
+                  <div class="row">
+
+                      <div class="col-md-6">
+                          <h2 class="mt-3 mb-4">Nutritional Values </h2><span></span>
+                          <div class="input-group mb-3">
+                              <span class="input-group-text">Enter amount (grams):</span>
+                              <input type="number" id="userGrams" class="form-control" value="100" min="1" max="1000">
+                              <button class="btn btn-outline-secondary" type="button" id="updateGrams">Update</button>
+                          </div>
+                          <ul>
+                              <li class="servingsize">Serving Size: <span id="servingSize">100</span> Grams <span class="float-end"></span></li>
+                              <li>Carbohydrates: <span class="float-end" id="carbs">{{api.0.carbohydrates_total_g}}</span></li>
+                              <li>Cholesterol: <span class="float-end" id="cholesterol">{{api.0.cholesterol_mg}}</span></li>
+                              <li>Saturated fat: <span class="float-end" id="satFat">{{api.0.fat_saturated_g}}</span></li>
+                              <li>Total Fat: <span class="float-end" id="totalFat">{{api.0.fat_saturated_g}}</span></li>
+                              <li>Fiber Content: <span class="float-end" id="fiber">{{api.0.fat_total_g}}</span></li>
+                              <li>Potassium <span class="float-end" id="potassium">{{api.0.potassium_mg}}</span></li>
+                              <li>Protein: <span class="float-end" id="protein">{{api.0.protein_g}}</span></li>
+                              <li>Sodium:<span class="float-end" id="sodium">{{api.0.sodium_mg}}</span></li>
+                              <li>Sugar: <span class="float-end" id="sugar">{{api.0.sugar_g}}</span></li>
+                          </ul>
+                      </div>
+                      <div class="col-md-6 mb-5">
+                          <h4 class="mt-3 mb-4">To burn <span id="caloriesAmount">{{api.0.calories}}</span> calories you will have to</h4>
+                          <div class="d-flex align-items-center mb-5">
+                              <div class="flex-shrink-0">
+                                  <img src="{% static 'images/running.png' %}" alt="...">
+                              </div>
+                              <div class="flex-grow-1 ms-3">
+                                  <h5> Jog </h5>
+                                  <p>you will have to jog for <strong id="jogTime"> {{api.0.calories | div:378|mul:60|floatformat:0}} </strong> Minutes</p>
+                              </div>
+                          </div>
+                          <div class="d-flex align-items-center mb-5">
+                              <div class="flex-shrink-0">
+                                  <img src="{% static 'images/yoga.png' %}" alt="...">
+                              </div>
+                              <div class="flex-grow-1 ms-4">
+                                  <h5> Do Power Yoga </h5>
+                                  <p>you will have to Power Yoga for <strong id="yogaTime"> {{api.0.calories | div:223|mul:60|floatformat:0}} </strong> Minutes</p>
+                              </div>
+                          </div>
+                          <div class="d-flex align-items-center mb-5">
+                              <div class="flex-shrink-0">
+                                  <img src="{% static 'images/weightlifter.png' %}" alt="...">
+                              </div>
+                              <div class="flex-grow-1 ms-4">
+                                  <h5>Get a Gym Workout </h5>
+                                  <p>you will have to lift weight for <strong id="gymTime"> {{api.0.calories | div:483|mul:60|floatformat:0}} </strong> Minutes </p>
+                              </div>
+                          </div>
+                          <div class="d-flex align-items-center">
+                              <div class="flex-shrink-0">
+                                  <img src="{% static 'images/walking.png' %}" alt="...">
+                              </div>
+                              <div class="flex-grow-1 ms-1">
+                                  <h5> Go for a Brisk Walk </h5>
+                                  <p>you will have to brisk walk for <strong id="walkTime"> {{api.0.calories | div:294|mul:60|floatformat:0}}  </strong> Minutes</p>
+                              </div>
+                          </div>
+                      </div>
+                      <div>
+                        <canvas id="myChart" width="400" height="400"></canvas>
+                        </div>
+                  </div>
+              </div>
+              {%endif%}
+              {%endif%}
+          </div>
+          <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.8.0/chart.min.js" integrity="sha512-sW/w8s4RWTdFFSduOTGtk4isV1+190E/GghVffMA9XczdJ2MDzSzLEubKAs5h0wzgSJOQTRYyaz73L3d6RtJSg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+          <script>
+            document.getElementById('bmiForm').addEventListener('submit', function(e) {
+                e.preventDefault();
+                const gender = document.getElementById('gender').value;
+                const weight = parseFloat(document.getElementById('weight').value);
+                const height = parseFloat(document.getElementById('height').value) / 100; // Convert cm to meters
+                
+                const bmi = weight / (height * height);
+                const bmiValue = document.getElementById('bmiValue');
+                const bmiCategory = document.getElementById('bmiCategory');
+                const exerciseRecommendation = document.getElementById('exerciseRecommendation');
+                const bmiResult = document.getElementById('bmiResult');
+                
+                bmiValue.textContent = bmi.toFixed(1);
+                
+                let category;
+                if (bmi < 18.5) category = 'Underweight';
+                else if (bmi < 25) category = 'Normal weight';
+                else if (bmi < 30) category = 'Overweight';
+                else category = 'Obese';
+                
+                bmiCategory.textContent = category;
+                
+                let recommendation;
+                if (category === 'Underweight') {
+                    recommendation = 'Focus on strength training with moderate cardio';
+                } else if (category === 'Normal weight') {
+                    recommendation = 'Maintain with balanced cardio and strength training';
+                } else {
+                    recommendation = 'Start with low-impact cardio and gradually increase intensity';
+                }
+                
+                exerciseRecommendation.textContent = recommendation;
+                bmiResult.classList.remove('d-none');
+                
+                // Adjust exercise durations based on BMI and gender
+                const caloriesAmount = document.getElementById('caloriesAmount');
+                if (caloriesAmount) {
+                    const calories = parseFloat(caloriesAmount.textContent);
+                    const bmiMultiplier = bmi > 25 ? 0.8 : 1.2; // Adjust duration based on BMI
+                    const genderMultiplier = gender === 'female' ? 1.1 : 1.0; // Slight adjustment for gender
+                    
+                    // Update exercise times
+                    document.getElementById('jogTime').textContent = Math.round((calories / 378) * 60 * bmiMultiplier * genderMultiplier);
+                    document.getElementById('yogaTime').textContent = Math.round((calories / 223) * 60 * bmiMultiplier * genderMultiplier);
+                    document.getElementById('gymTime').textContent = Math.round((calories / 483) * 60 * bmiMultiplier * genderMultiplier);
+                    document.getElementById('walkTime').textContent = Math.round((calories / 294) * 60 * bmiMultiplier * genderMultiplier);
+                }
+            });
+            
+            const ctx = document.getElementById('myChart').getContext('2d');
+            const myChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['carbohydrates', 'Cholesterol', 'Saturated fat', 'Total Fat', 'Fiber Content', 'Potassium', 'Protein','Sodium','Sugar'],
+                    datasets: [{
+                        label: 'Nutritional values of {{api.0.name | capfirst}}',
+                        data: [
+                              {{api.0.carbohydrates_total_g}},
+                              {{api.0.cholesterol_mg}},
+                              {{api.0.fat_saturated_g}},
+                              {{api.0.fat_saturated_g}},
+                              {{api.0.fat_total_g}},
+                              {{api.0.potassium_mg}},
+                              {{api.0.protein_g}},
+                              {{api.0.sodium_mg}},
+                              {{api.0.sugar_g}},
+                        ],
+                        backgroundColor: [
+                            'rgba(255, 99, 132, 0.2)',
+                            'rgba(54, 162, 235, 0.2)',
+                            'rgba(255, 206, 86, 0.2)',
+                            'rgba(75, 192, 192, 0.2)',
+                            'rgba(153, 102, 255, 0.2)',
+                            'rgba(255, 159, 64, 0.2)'
+                        ],
+                        borderColor: [
+                            'rgba(255, 99, 132, 1)',
+                            'rgba(54, 162, 235, 1)',
+                            'rgba(255, 206, 86, 1)',
+                            'rgba(75, 192, 192, 1)',
+                            'rgba(153, 102, 255, 1)',
+                            'rgba(255, 159, 64, 1)'
+                        ],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive:true,
+                    maintainAspectRatio:false,
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+            </script>
+            
+            <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                const userGramsInput = document.getElementById('userGrams');
+                const updateButton = document.getElementById('updateGrams');
+                const baseValues = {
+                    calories: parseFloat(document.getElementById('caloriesAmount').textContent),
+                    carbs: parseFloat(document.getElementById('carbs').textContent),
+                    cholesterol: parseFloat(document.getElementById('cholesterol').textContent),
+                    satFat: parseFloat(document.getElementById('satFat').textContent),
+                    totalFat: parseFloat(document.getElementById('totalFat').textContent),
+                    fiber: parseFloat(document.getElementById('fiber').textContent),
+                    potassium: parseFloat(document.getElementById('potassium').textContent),
+                    protein: parseFloat(document.getElementById('protein').textContent),
+                    sodium: parseFloat(document.getElementById('sodium').textContent),
+                    sugar: parseFloat(document.getElementById('sugar').textContent)
+                };
+            
+                function updateNutritionalValues(grams) {
+                    const ratio = grams / 100;
+                    document.getElementById('servingSize').textContent = grams;
+                    document.getElementById('caloriesAmount').textContent = (baseValues.calories * ratio).toFixed(1);
+                    document.getElementById('carbs').textContent = (baseValues.carbs * ratio).toFixed(1);
+                    document.getElementById('cholesterol').textContent = (baseValues.cholesterol * ratio).toFixed(1);
+                    document.getElementById('satFat').textContent = (baseValues.satFat * ratio).toFixed(1);
+                    document.getElementById('totalFat').textContent = (baseValues.totalFat * ratio).toFixed(1);
+                    document.getElementById('fiber').textContent = (baseValues.fiber * ratio).toFixed(1);
+                    document.getElementById('potassium').textContent = (baseValues.potassium * ratio).toFixed(1);
+                    document.getElementById('protein').textContent = (baseValues.protein * ratio).toFixed(1);
+                    document.getElementById('sodium').textContent = (baseValues.sodium * ratio).toFixed(1);
+                    document.getElementById('sugar').textContent = (baseValues.sugar * ratio).toFixed(1);
+            
+                    // Update exercise times
+                    const calories = baseValues.calories * ratio;
+                    document.getElementById('jogTime').textContent = Math.round((calories / 378) * 60);
+                    document.getElementById('yogaTime').textContent = Math.round((calories / 223) * 60);
+                }
+            
+                updateButton.addEventListener('click', function() {
+                    const grams = parseFloat(userGramsInput.value);
+                    if (grams > 0 && grams <= 1000) {
+                        updateNutritionalValues(grams);
+                    } else {
+                        alert('Please enter a value between 1 and 1000 grams');
+                    }
+                });
+            });
+            </script>
+  </body>
+</html>
